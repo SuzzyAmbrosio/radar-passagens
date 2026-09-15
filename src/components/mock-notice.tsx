@@ -1,0 +1,1 @@
+export function MockNotice() { return <div className="mb-6 flex items-center gap-3 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900"><span className="mock">MOCK</span><span>Dados de desenvolvimento — não representam preços reais nem consultas a companhias aéreas.</span></div>; }

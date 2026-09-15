@@ -1,0 +1,3 @@
+import Link from "next/link";
+const links = [["Dashboard", "/dashboard"], ["Alertas", "/alerts"], ["Ofertas", "/offers"], ["Histórico", "/history"], ["Configurações", "/settings"]];
+export function Navigation() { return <header className="border-b border-slate-200 bg-white"><div className="shell flex min-h-16 items-center justify-between gap-5"><Link href="/" className="font-bold text-slate-950">Radar <span className="text-blue-600">de Passagens</span></Link><nav className="hidden gap-5 text-sm font-medium text-slate-600 md:flex">{links.map(([label, href]) => <Link key={href} href={href} className="hover:text-blue-600">{label}</Link>)}</nav><Link className="button text-sm" href="/alerts/new">Criar alerta</Link></div></header>; }

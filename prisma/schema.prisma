@@ -1,0 +1,144 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum AlertStatus {
+  ACTIVE
+  PAUSED
+}
+
+enum MonitoringFrequency {
+  DAILY
+  WEEKLY
+  CUSTOM
+}
+
+enum NotificationStatus {
+  PENDING
+  SENT
+  FAILED
+}
+
+model User {
+  id String @id @default(cuid())
+  email String @unique
+  name String?
+  currency String @default("BRL")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  alerts Alert[]
+  notifications Notification[]
+  affiliateClicks AffiliateClick[]
+}
+
+model Alert {
+  id String @id @default(cuid())
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  origin String
+  destinations String[]
+  anyDestination Boolean @default(false)
+  startDate DateTime?
+  endDate DateTime?
+  dateMode String @default("RANGE")
+  flexibleDates Boolean @default(false)
+  minDurationDays Int?
+  maxDurationDays Int?
+  adults Int @default(1)
+  children Int @default(0)
+  infants Int @default(0)
+  maxPrice Decimal? @db.Decimal(12,2)
+  currency String @default("BRL")
+  maxStops Int?
+  airlines String[]
+  status AlertStatus @default(ACTIVE)
+  frequency MonitoringFrequency @default(DAILY)
+  lastCheckedAt DateTime?
+  nextCheckAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  searches FlightSearch[]
+  offers FlightOffer[]
+  priceHistory PriceHistory[]
+  notifications Notification[]
+  @@index([userId, status])
+  @@index([status, nextCheckAt])
+}
+
+model FlightSearch {
+  id String @id @default(cuid())
+  alertId String
+  alert Alert @relation(fields: [alertId], references: [id], onDelete: Cascade)
+  provider String
+  status String
+  searchedAt DateTime @default(now())
+  offers FlightOffer[]
+  @@index([alertId, searchedAt])
+}
+
+model FlightOffer {
+  id String @id @default(cuid())
+  alertId String?
+  alert Alert? @relation(fields: [alertId], references: [id], onDelete: SetNull)
+  searchId String?
+  search FlightSearch? @relation(fields: [searchId], references: [id], onDelete: SetNull)
+  provider String
+  origin String
+  destination String
+  departureDate DateTime
+  returnDate DateTime?
+  airline String?
+  stops Int
+  durationMinutes Int
+  price Decimal @db.Decimal(12,2)
+  currency String
+  offerUrl String
+  foundAt DateTime @default(now())
+  isMock Boolean @default(false)
+  priceHistory PriceHistory[]
+  affiliateClicks AffiliateClick[]
+  @@index([alertId, foundAt])
+}
+
+model PriceHistory {
+  id String @id @default(cuid())
+  offerId String
+  offer FlightOffer @relation(fields: [offerId], references: [id], onDelete: Cascade)
+  alertId String?
+  alert Alert? @relation(fields: [alertId], references: [id], onDelete: SetNull)
+  price Decimal @db.Decimal(12,2)
+  currency String
+  capturedAt DateTime @default(now())
+  isMock Boolean @default(false)
+  @@index([offerId, capturedAt])
+  @@index([alertId, capturedAt])
+}
+
+model Notification {
+  id String @id @default(cuid())
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  alertId String?
+  alert Alert? @relation(fields: [alertId], references: [id], onDelete: SetNull)
+  channel String
+  status NotificationStatus @default(PENDING)
+  payload Json
+  sentAt DateTime?
+  createdAt DateTime @default(now())
+}
+
+model AffiliateClick {
+  id String @id @default(cuid())
+  userId String?
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+  offerId String?
+  offer FlightOffer? @relation(fields: [offerId], references: [id], onDelete: SetNull)
+  partner String
+  destinationUrl String
+  clickedAt DateTime @default(now())
+}
